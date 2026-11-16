@@ -49,7 +49,7 @@ When collecting contact-rich task data through teleoperation, the system can pro
 ## [Option 1] Install the pre-built APK 
 If there is no need to modify the code or if you simply want to test the functionality of the APP, you can directly use our released version.
 
-1. Download the APK from the Github [release pages](https://github.com/xiaoxiaoxh/TactAR_APP/releases).
+1. Download the [current APK (0.1.9)](Releases/ARISE_AR_APP-0.1.9-b10.apk) or the [baseline APK (0.1.0)](Releases/ARISE_AR_APP-0.1.0-b1.apk).
 
 2. Please refer to the following official documentation to download Meta Quest Developer Hub and install the APK into Meta Quest3.
 

@@ -23,6 +23,8 @@ UserSettings/
 *.unity
 
 *.apk
+!/Releases/ARISE_AR_APP-0.1.0-b1.apk
+!/Releases/ARISE_AR_APP-0.1.9-b10.apk
 
 *.prefab
 
@@ -33,3 +35,42 @@ UserSettings/
 .vscode/
 
 Samples/
+
+# Keep the restored gripper, its original dependency identities, and new gripper assets.
+!Assets/Resources/Prefab/GhostGripper.prefab
+!Assets/Resources/Prefab/GhostGripper.prefab.meta
+!Assets/Resources/Prefab/AG16095SoftGripper.prefab
+!Assets/Resources/Prefab/AG16095SoftGripper.prefab.meta
+!Assets/Resources/GripperModels.meta
+!Assets/Resources/GripperModels/
+!Assets/Resources/GripperModels/**
+!Assets/Resources/Material/ARToolHand.meta
+!Assets/Resources/Material/ARToolHand/*.meta
+!Assets/Scripts/ActionChunkVisualizer.cs.meta
+!Assets/Scripts/GripperController.cs.meta
+!Assets/Scripts/AG16095GripperVisual.cs.meta
+!Assets/Scripts/TrajectoryMapHandPose.cs.meta
+!Assets/Scripts/PhysicalTouchInput.cs.meta
+!Assets/Scripts/CubeVisualizer.cs.meta
+!Assets/Scripts/MagnifiedTrajectoryMap.cs.meta
+!Assets/Scripts/TrajectoryPointData.cs.meta
+!Assets/Scripts/TrajectoryVisualizer.cs.meta
+!Assets/Editor.meta
+!Assets/Editor/GripperTools.meta
+!Assets/Editor/GripperTools/**
+!Assets/Scenes/GripperPreview.unity
+!Assets/Scenes/GripperPreview.unity.meta
+!Assets/Scenes/Teleoperation.unity
+!Assets/Scenes/Teleoperation.unity.meta
+
+# Preserve the keyboard console and the original prefab backup.
+!Assets/Editor/KeyboardTools.meta
+!Assets/Editor/KeyboardTools/
+!Assets/Editor/KeyboardTools/**
+!Assets/Backups.meta
+!Assets/Backups/
+!Assets/Backups/Keyboard.meta
+!Assets/Backups/Keyboard/
+!Assets/Backups/Keyboard/**
+!Assets/Editor/ReleaseTools.meta
+!Assets/Editor/ReleaseTools/**

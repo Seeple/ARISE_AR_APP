@@ -49,10 +49,10 @@ public class ChunkVisualizer : MonoBehaviour
     private List<GameObject> axisObjects = new List<GameObject>();
 
     [Header("Ghost gripper settings")]
-    public string ghostGripperResourcePath = "Prefab/GhostGripper";
+    public string ghostGripperResourcePath = "Prefab/AG16095SoftGripper";
     public float ghostJawWidth = 0.085f;
-    public float ghostAlpha = 0.35f;
-    public float ghostScale = 0.5f;
+    [Range(0f, 1f)] public float ghostAlpha = 0.75f;
+    public float ghostScale = 0.25f;
     public Vector3 ghostRotationOffsetEuler = new Vector3(0f, 90f, 0f);
     public int ghostSampleStride = 4;
     public bool showActionChunk = true;
@@ -620,7 +620,9 @@ public class ChunkVisualizer : MonoBehaviour
 
     void SetMaterialTransparent(Material material)
     {
-        material.SetFloat("_Mode", 3f);
+        material.SetFloat("_Mode", 2f);
+        material.SetOverrideTag("RenderType", "Transparent");
+        if (material.HasProperty("_GhostEffect")) material.SetFloat("_GhostEffect", 0f);
         material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
         material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
         material.SetInt("_ZWrite", 0);

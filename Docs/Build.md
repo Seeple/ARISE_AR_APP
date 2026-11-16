@@ -2,7 +2,7 @@
 1. Clone the Project.
    
    ```
-   git clone https://github.com/xiaoxiaoxh/TactAR_APP
+   git clone https://github.com/Seeple/ARISE_AR_APP.git
    ```
 
 2. Install Unity Hub and install Unity Editor **2022.3.x LTS** through Unity Hub.

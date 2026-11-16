@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Net;
 using UnityEngine;
 using System.Net.Sockets;
@@ -37,9 +37,9 @@ public class VisualizationServer : MonoBehaviour
     [Header("Robot TCP ghost")]
     public bool showRobotTcpGhost = false;
     public bool robotGhostUseRightTcp = false;
-    public string robotGhostResourcePath = "Prefab/GhostGripper";
-    public float robotGhostScale = 0.5f;
-    public float robotGhostAlpha = 0.35f;
+    public string robotGhostResourcePath = "Prefab/AG16095SoftGripper";
+    public float robotGhostScale = 0.25f;
+    [Range(0f, 1f)] public float robotGhostAlpha = 0.75f;
     public Vector3 robotGhostRotationOffsetEuler = Vector3.zero;
     // public Transform leftForce;  // 已禁用
     // public Transform rightForce; // 已禁用
@@ -455,7 +455,9 @@ public class VisualizationServer : MonoBehaviour
 
     void SetMaterialTransparent(Material material)
     {
-        material.SetFloat("_Mode", 3f);
+        material.SetFloat("_Mode", 2f);
+        material.SetOverrideTag("RenderType", "Transparent");
+        if (material.HasProperty("_GhostEffect")) material.SetFloat("_GhostEffect", 0f);
         material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
         material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
         material.SetInt("_ZWrite", 0);

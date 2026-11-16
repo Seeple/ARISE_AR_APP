@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class MagnifiedTrajectoryMap : MonoBehaviour
 {
+    const float GestureDwellSeconds = 0.12f;
+    const float PlacementSmoothingSeconds = 0.055f;
     [Header("References")]
     public Transform headTransform;
     public ChunkVisualizer sourceVisualizer;
@@ -52,6 +54,13 @@ public class MagnifiedTrajectoryMap : MonoBehaviour
     private bool subscribedToSource = false;
     private bool hasLockedWorldPosition = false;
     private Vector3 lockedWorldPosition = Vector3.zero;
+    private float placementScale = 1f;
+    private bool dragCandidate;
+    private bool dragActive;
+    private bool stickZoomArmed;
+    private float candidateSeconds;
+    private Vector3 startGesturePoint;
+    private Vector3 startMapPosition;
     private bool editBasisLocked = false;
     private int lockedEditPointIndex = -1;
     private Vector3 lockedEditTrajectoryCenterLocal = Vector3.zero;
@@ -60,6 +69,7 @@ public class MagnifiedTrajectoryMap : MonoBehaviour
     private Matrix4x4 lockedEditTrajectoryLocalToWorldMatrix = Matrix4x4.identity;
     private Vector3 lockedEditMapRootPosition = Vector3.zero;
     private Quaternion lockedEditMapRootRotation = Quaternion.identity;
+    private Vector3 lockedEditMapRootScale = Vector3.one;
     private Quaternion lockedEditTrajectoryRootRotation = Quaternion.identity;
 
     void Awake()
@@ -134,9 +144,15 @@ public class MagnifiedTrajectoryMap : MonoBehaviour
     {
         bool wasVisible = visible;
         visible = isVisible;
+        if (visible != wasVisible)
+        {
+            CancelPlacementGesture();
+            ResetStickZoom();
+        }
         EnsureRoot();
         if (visible && !wasVisible)
         {
+            placementScale = 1f;
             RefreshPlacementFromHead();
         }
         else
@@ -154,6 +170,77 @@ public class MagnifiedTrajectoryMap : MonoBehaviour
     {
         return visible;
     }
+
+    public bool CanAdjustPlacement => visible && mapLocalPositions.Count > 0 && !editBasisLocked;
+
+    public void CancelPlacementGesture()
+    {
+        dragActive = dragCandidate = false;
+        candidateSeconds = 0f;
+    }
+
+    public bool UpdatePlacementDrag(bool pinched, Vector3 gesturePoint, float deltaTime)
+    {
+        if (!CanAdjustPlacement || !pinched || !IsFinite(deltaTime) || deltaTime <= 0f ||
+            !IsFinite(gesturePoint.x) || !IsFinite(gesturePoint.y) || !IsFinite(gesturePoint.z))
+        {
+            CancelPlacementGesture();
+            return false;
+        }
+
+        float step = Mathf.Min(deltaTime, .05f);
+        if (!dragCandidate)
+        {
+            dragCandidate = true;
+            return false;
+        }
+
+        if (!dragActive)
+        {
+            candidateSeconds += step;
+            if (candidateSeconds < GestureDwellSeconds) return false;
+            dragActive = true;
+            startGesturePoint = gesturePoint;
+            startMapPosition = lockedWorldPosition;
+            return false;
+        }
+
+        float blend = 1f - Mathf.Exp(-step / PlacementSmoothingSeconds);
+        Vector3 previousPosition = lockedWorldPosition;
+        lockedWorldPosition = Vector3.Lerp(lockedWorldPosition, startMapPosition + (gesturePoint - startGesturePoint), blend);
+        ApplyRootPose();
+        return !previousPosition.Equals(lockedWorldPosition);
+    }
+
+    public void ResetStickZoom() => stickZoomArmed = false;
+
+    public bool UpdateStickZoom(float vertical, bool held, bool stickClick, float deltaTime)
+    {
+        if (!CanAdjustPlacement || !held || stickClick || !IsFinite(vertical) ||
+            !IsFinite(deltaTime) || deltaTime <= 0f)
+        {
+            ResetStickZoom();
+            return false;
+        }
+
+        float magnitude = Mathf.Clamp01(Mathf.Abs(vertical));
+        const float deadzone = PhysicalTouchInput.StickDeadzone;
+        if (magnitude <= deadzone)
+        {
+            stickZoomArmed = true;
+            return false;
+        }
+        if (!stickZoomArmed) return false;
+
+        float speed = Mathf.Sign(vertical) * (magnitude - deadzone) / (1f - deadzone);
+        float next = Mathf.Clamp(placementScale * Mathf.Pow(2f, speed * Mathf.Min(deltaTime, .05f)), .5f, 2f);
+        if (next == placementScale) return false;
+        placementScale = next;
+        ApplyRootPose(); // Same pose for this frame's hit test and rendering.
+        return true;
+    }
+
+    static bool IsFinite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
 
     public void RefreshPlacementFromHead()
     {
@@ -182,13 +269,13 @@ public class MagnifiedTrajectoryMap : MonoBehaviour
             return false;
         }
 
-        Vector3 localPosition = mapRoot.transform.InverseTransformPoint(worldPosition);
         float bestDistance = float.MaxValue;
         float maxDistance = Mathf.Max(0.001f, radius);
+        Matrix4x4 mapToWorld = mapRoot.transform.localToWorldMatrix;
 
         for (int i = 0; i < mapLocalPositions.Count; i++)
         {
-            float distance = Vector3.Distance(localPosition, mapLocalPositions[i]);
+            float distance = (mapToWorld.MultiplyPoint3x4(mapLocalPositions[i]) - worldPosition).sqrMagnitude;
             if (distance < bestDistance)
             {
                 bestDistance = distance;
@@ -196,7 +283,7 @@ public class MagnifiedTrajectoryMap : MonoBehaviour
             }
         }
 
-        if (pointIndex < 0 || bestDistance > maxDistance)
+        if (pointIndex < 0 || bestDistance > maxDistance * maxDistance)
         {
             pointIndex = -1;
             return false;
@@ -221,9 +308,12 @@ public class MagnifiedTrajectoryMap : MonoBehaviour
         lockedEditScale = Mathf.Max(0.001f, activeScale);
         lockedEditMapRootPosition = mapRoot.transform.position;
         lockedEditMapRootRotation = mapRoot.transform.rotation;
+        lockedEditMapRootScale = mapRoot.transform.localScale;
         lockedEditMapWorldToLocalMatrix = mapRoot.transform.worldToLocalMatrix;
         CaptureTrajectoryRootPose(out lockedEditTrajectoryLocalToWorldMatrix, out lockedEditTrajectoryRootRotation);
         editBasisLocked = true;
+        CancelPlacementGesture();
+        ResetStickZoom();
     }
 
     public void EndEdit()
@@ -425,6 +515,8 @@ public class MagnifiedTrajectoryMap : MonoBehaviour
 
         if (positions == null || positions.Count == 0)
         {
+            CancelPlacementGesture();
+            ResetStickZoom();
             ClearVisualization();
             return;
         }
@@ -644,7 +736,7 @@ public class MagnifiedTrajectoryMap : MonoBehaviour
         {
             mapRoot.transform.position = lockedEditMapRootPosition;
             mapRoot.transform.rotation = lockedEditMapRootRotation;
-            mapRoot.transform.localScale = Vector3.one;
+            mapRoot.transform.localScale = lockedEditMapRootScale;
             return;
         }
 
@@ -662,7 +754,7 @@ public class MagnifiedTrajectoryMap : MonoBehaviour
 
         mapRoot.transform.position = lockedWorldPosition;
         mapRoot.transform.rotation = GetTrajectoryRootRotation();
-        mapRoot.transform.localScale = Vector3.one;
+        mapRoot.transform.localScale = Vector3.one * placementScale;
     }
 
     Quaternion GetTrajectoryRootRotation()

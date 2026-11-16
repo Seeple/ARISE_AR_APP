@@ -1078,7 +1078,7 @@ GameObject:
   - component: {fileID: 745937855}
   - component: {fileID: 745937857}
   - component: {fileID: 745937856}
-  - component: {fileID: 745937858}
+  - component: {fileID: 745937859}
   m_Layer: 0
   m_Name: Main
   m_TagString: Untagged
@@ -1120,9 +1120,9 @@ MonoBehaviour:
   leftHand: {fileID: 995262848067602753}
   controller_right: {fileID: 185464157602886887}
   controller_left: {fileID: 183902050789167967}
-  showText: {fileID: 2982190610834161401}
+  showText: {fileID: 3815115574181012232}
   keyboard: {fileID: 2069529864509720341}
-  chunkVisualizer: {fileID: 745937858}
+  chunkVisualizer: {fileID: 745937859}
   ovrhead: {fileID: 188315682086433829}
   enableCollisionDetection: 1
   indexFingerTip: {fileID: 0}
@@ -1132,8 +1132,12 @@ MonoBehaviour:
     m_Bits: 4294967295
   enableMagnifiedMapSelection: 1
   magnifiedTrajectoryMap: {fileID: 0}
+  magnifiedSelectionRadius: 0.005
+  hoverGraceSeconds: 0.15
+  pinchSelectionRadiusMultiplier: 1.35
   pinchThreshold: 0.85
   releaseThreshold: 0.5
+  editPoseGraceSeconds: 0.08
   showDebugSphere: 1
   debugSphereColor: {r: 0, g: 1, b: 0, a: 1}
   LRinverse: 1
@@ -1169,11 +1173,11 @@ MonoBehaviour:
   hasLeftGripperWidth: 0
   showRobotTcpGhost: 0
   robotGhostUseRightTcp: 0
-  robotGhostResourcePath: Prefab/GhostGripper
+  robotGhostResourcePath: Prefab/AG16095SoftGripper
   robotGhostScale: 0.25
-  robotGhostAlpha: 0.05
+  robotGhostAlpha: 0.75
   robotGhostRotationOffsetEuler: {x: -90, y: 0, z: 0}
---- !u!114 &745937858
+--- !u!114 &745937859
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1182,23 +1186,23 @@ MonoBehaviour:
   m_GameObject: {fileID: 745937853}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a1301d3bef3de140bb5bb538f3a70f80, type: 3}
+  m_Script: {fileID: 11500000, guid: 1f27c6273203e444c8e11d27f91bf253, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   port: 10006
   pointSize: 0.005
   axisLength: 0.05
   lineWidth: 0.0025
-  whiteMaterial: {fileID: 2100000, guid: 8a7cc532c15198e07a7f54fdb6df8827, type: 2}
-  redMaterial: {fileID: 2100000, guid: b2941dd235f980dd39d2312b0a6e8264, type: 2}
-  greenMaterial: {fileID: 2100000, guid: a650666c9ec54efacbe47d74ec603779, type: 2}
-  blueMaterial: {fileID: 2100000, guid: 51eac20a77f530546a2ceddb6e586db9, type: 2}
+  whiteMaterial: {fileID: 2100000, guid: fddaee25d732242018ddffd72ddc2c0d, type: 2}
+  redMaterial: {fileID: 2100000, guid: ecea49427de5f4099942ed94b5772226, type: 2}
+  greenMaterial: {fileID: 2100000, guid: 57006b111ef8e4405be738f052728659, type: 2}
+  blueMaterial: {fileID: 2100000, guid: b3a84951d0de34e04809ee6b94123652, type: 2}
   enablePointSelection: 1
   selectedPointColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   hoverPointColor: {r: 0, g: 1, b: 1, a: 1}
-  ghostGripperResourcePath: Prefab/GhostGripper
+  ghostGripperResourcePath: Prefab/AG16095SoftGripper
   ghostJawWidth: 0.085
-  ghostAlpha: 0.05
+  ghostAlpha: 0.75
   ghostScale: 0.25
   ghostRotationOffsetEuler: {x: -90, y: 0, z: 0}
   ghostSampleStride: 4
@@ -4997,18 +5001,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8a5572046acb0e4283195459863cb9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &2982190610834161401 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7688456526347817621, guid: bc84040548c9ff84897a6ce479512ddf,
-    type: 3}
-  m_PrefabInstance: {fileID: 3815115574181012231}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &3034521771391928556
 Transform:
   m_ObjectHideFlags: 0
@@ -5176,296 +5168,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Keyboard
       objectReference: {fileID: 0}
-    - target: {fileID: 603413305577965672, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenSelect.m_PersistentCalls.m_Calls.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 603413305577965672, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 603413305577965672, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 603413305577965672, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 2069529864509720341}
-    - target: {fileID: 603413305577965672, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: Add
-      objectReference: {fileID: 0}
-    - target: {fileID: 603413305577965672, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: Mykeyboard, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 603413305577965672, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_StringArgument
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 912043202782388283, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1228463878828127515, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1360806951986546178, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_text
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 1381488195535407152, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1522896330177170678, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenSelect.m_PersistentCalls.m_Calls.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1522896330177170678, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1522896330177170678, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 2069529864509720341}
-    - target: {fileID: 1522896330177170678, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: SwitchLRController
-      objectReference: {fileID: 0}
-    - target: {fileID: 1522896330177170678, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: Mykeyboard, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 1522896330177170678, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_StringArgument
-      value: LocomotionExamples
-      objectReference: {fileID: 0}
-    - target: {fileID: 1816205880183757447, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenSelect.m_PersistentCalls.m_Calls.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1816205880183757447, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1816205880183757447, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 1816205880183757447, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 2069529864509720341}
-    - target: {fileID: 1816205880183757447, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: Add
-      objectReference: {fileID: 0}
-    - target: {fileID: 1816205880183757447, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: Mykeyboard, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 1816205880183757447, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_StringArgument
-      value: 7
-      objectReference: {fileID: 0}
-    - target: {fileID: 2747103942355395278, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenSelect.m_PersistentCalls.m_Calls.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2747103942355395278, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2747103942355395278, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 2747103942355395278, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 2069529864509720341}
-    - target: {fileID: 2747103942355395278, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: Add
-      objectReference: {fileID: 0}
-    - target: {fileID: 2747103942355395278, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: Mykeyboard, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 2747103942355395278, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_StringArgument
-      value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 3939873098759309782, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenSelect.m_PersistentCalls.m_Calls.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3939873098759309782, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3939873098759309782, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 3939873098759309782, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 2069529864509720341}
-    - target: {fileID: 3939873098759309782, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: Add
-      objectReference: {fileID: 0}
-    - target: {fileID: 3939873098759309782, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: Mykeyboard, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 3939873098759309782, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_StringArgument
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 4127876190107981107, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4127876190107981107, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4127876190107981107, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4127876190107981107, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4127876190107981107, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4127876190107981107, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4145802035673084102, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenSelect.m_PersistentCalls.m_Calls.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4145802035673084102, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4145802035673084102, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 2069529864509720341}
-    - target: {fileID: 4145802035673084102, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: RefreshIP
-      objectReference: {fileID: 0}
-    - target: {fileID: 4145802035673084102, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: Mykeyboard, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 4145802035673084102, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_StringArgument
-      value: GestureExamples
-      objectReference: {fileID: 0}
-    - target: {fileID: 4165939192628349953, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenSelect.m_PersistentCalls.m_Calls.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4165939192628349953, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4165939192628349953, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 2069529864509720341}
-    - target: {fileID: 4165939192628349953, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: Remove
-      objectReference: {fileID: 0}
-    - target: {fileID: 4165939192628349953, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: Mykeyboard, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 4165939192628349953, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_StringArgument
-      value: PoseExamples
-      objectReference: {fileID: 0}
-    - target: {fileID: 4281994372049854629, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4900124951393217113, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_text
-      value: SwitchL-R
-      objectReference: {fileID: 0}
     - target: {fileID: 5218987167755142588, guid: bc84040548c9ff84897a6ce479512ddf,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -5516,456 +5218,28 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5262703214361939623, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5488874289956040994, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenSelect.m_PersistentCalls.m_Calls.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5488874289956040994, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5488874289956040994, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 5488874289956040994, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 2069529864509720341}
-    - target: {fileID: 5488874289956040994, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: Add
-      objectReference: {fileID: 0}
-    - target: {fileID: 5488874289956040994, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: Mykeyboard, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 5488874289956040994, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_StringArgument
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 6037117880392114842, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenSelect.m_PersistentCalls.m_Calls.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6037117880392114842, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6037117880392114842, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 6037117880392114842, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 2069529864509720341}
-    - target: {fileID: 6037117880392114842, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: Add
-      objectReference: {fileID: 0}
-    - target: {fileID: 6037117880392114842, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: Mykeyboard, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 6037117880392114842, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_StringArgument
-      value: .
-      objectReference: {fileID: 0}
-    - target: {fileID: 6313186560995008964, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenSelect.m_PersistentCalls.m_Calls.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6313186560995008964, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6313186560995008964, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 6313186560995008964, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 2069529864509720341}
-    - target: {fileID: 6313186560995008964, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: Add
-      objectReference: {fileID: 0}
-    - target: {fileID: 6313186560995008964, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: Mykeyboard, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 6313186560995008964, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_StringArgument
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 6608258612631206414, guid: bc84040548c9ff84897a6ce479512ddf,
         type: 3}
       propertyPath: Client
       value: 
       objectReference: {fileID: 745937855}
-    - target: {fileID: 7233330456376729945, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenSelect.m_PersistentCalls.m_Calls.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7233330456376729945, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7233330456376729945, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 7233330456376729945, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 2069529864509720341}
-    - target: {fileID: 7233330456376729945, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: Add
-      objectReference: {fileID: 0}
-    - target: {fileID: 7233330456376729945, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: Mykeyboard, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 7233330456376729945, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_StringArgument
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7396497724543524790, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenSelect.m_PersistentCalls.m_Calls.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7396497724543524790, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7396497724543524790, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 7396497724543524790, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 2069529864509720341}
-    - target: {fileID: 7396497724543524790, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: Add
-      objectReference: {fileID: 0}
-    - target: {fileID: 7396497724543524790, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: Mykeyboard, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 7396497724543524790, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_StringArgument
-      value: ':'
-      objectReference: {fileID: 0}
-    - target: {fileID: 7706985425400590362, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7706985425400590362, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7706985425400590362, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7706985425400590362, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7706985425400590362, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7706985425400590362, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7890791022533524323, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenSelect.m_PersistentCalls.m_Calls.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7890791022533524323, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7890791022533524323, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 7890791022533524323, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 2069529864509720341}
-    - target: {fileID: 7890791022533524323, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: Add
-      objectReference: {fileID: 0}
-    - target: {fileID: 7890791022533524323, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: Mykeyboard, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 7890791022533524323, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_StringArgument
-      value: 9
-      objectReference: {fileID: 0}
-    - target: {fileID: 8120627450789322077, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8120627450789322077, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8120627450789322077, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8120627450789322077, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8120627450789322077, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8120627450789322077, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8187098705387138643, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8187098705387138643, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8187098705387138643, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8187098705387138643, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8187098705387138643, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8187098705387138643, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8272797923844188297, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenSelect.m_PersistentCalls.m_Calls.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8272797923844188297, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8272797923844188297, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 8272797923844188297, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 2069529864509720341}
-    - target: {fileID: 8272797923844188297, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: Add
-      objectReference: {fileID: 0}
-    - target: {fileID: 8272797923844188297, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: Mykeyboard, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 8272797923844188297, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_StringArgument
-      value: 8
-      objectReference: {fileID: 0}
-    - target: {fileID: 9088136812037059570, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenSelect.m_PersistentCalls.m_Calls.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 9088136812037059570, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 9088136812037059570, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 9088136812037059570, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 2069529864509720341}
-    - target: {fileID: 9088136812037059570, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: Add
-      objectReference: {fileID: 0}
-    - target: {fileID: 9088136812037059570, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: Mykeyboard, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 9088136812037059570, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      propertyPath: _whenRelease.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_StringArgument
-      value: 5
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects:
-    - {fileID: 4281994372049854629, guid: bc84040548c9ff84897a6ce479512ddf, type: 3}
+    m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 4055996456624271728, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 1421410741376188307, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 4278224944021745313, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 2386284073466461602, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 2183447067867872923, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 737788150257037791, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 989861663754087900, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 6989661687262316672, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 2739669992496219416, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 5849298433927705639, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 5857282109920886797, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 8956997094011887101, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 6007995361245163941, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 8781912700100889086, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 7027507613886110395, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 912043202782388283, guid: bc84040548c9ff84897a6ce479512ddf,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: bc84040548c9ff84897a6ce479512ddf, type: 3}
+--- !u!114 &3815115574181012232 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2255365333249811419, guid: bc84040548c9ff84897a6ce479512ddf,
+    type: 3}
+  m_PrefabInstance: {fileID: 3815115574181012231}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &3838228690369238990
 PrefabInstance:
   m_ObjectHideFlags: 0

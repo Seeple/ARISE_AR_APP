@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+using UnityEngine;
+using TouchButton = PhysicalTouchInput.Button;
+using TouchState = PhysicalTouchInput.State;
 
 public class Calibration : MonoBehaviour
 {
@@ -6,6 +8,18 @@ public class Calibration : MonoBehaviour
     public static Calibration instance;
     public GameObject coord;
     bool running = false;
+    public bool IsRunning => running;
+    public float WorldYawDegrees => Mathf.Repeat(
+        Mathf.Atan2(transform.forward.x, transform.forward.z) * Mathf.Rad2Deg, 360f);
+
+    public bool AdjustWorldYaw(float degrees)
+    {
+        if (!running || float.IsNaN(degrees) || float.IsInfinity(degrees)) return false;
+        // Rotate around gravity at the existing calibration origin, not the headset.
+        transform.rotation = Quaternion.AngleAxis(degrees, Vector3.up) * transform.rotation;
+        return true;
+    }
+
     private void Awake()
     {
         instance = this;
@@ -17,60 +31,61 @@ public class Calibration : MonoBehaviour
     public void SwitchAlign(bool run)
     {
         running = run;
+        draggingLeft = draggingRight = false;
         coord.SetActive(run);
-
     }
 
     Vector3 startPositionRight;
     Vector3 startPositionLeft;
     Vector3 startPositionTransform;
-    private void Update()
+    bool draggingRight;
+    bool draggingLeft;
+
+    internal void ApplyTouchInput(TouchState left, TouchState right, bool calibrationChord)
     {
         if (!running) return;
-        if (OVRInput.GetDown(OVRInput.RawButton.RIndexTrigger))
+
+        if (!right.IsHeld(TouchButton.Index)) draggingRight = false;
+        if (right.IsPressed(TouchButton.Index))
         {
             startPositionRight = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
+            draggingRight = true;
         }
-        if (OVRInput.Get(OVRInput.RawButton.RIndexTrigger))
+        if (draggingRight)
         {
             Vector3 offset = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch) - startPositionRight;
             offset.y = 0;
-            transform.LookAt(transform.position + offset);
+            if (offset.sqrMagnitude > .000001f) transform.LookAt(transform.position + offset);
         }
 
-        if (OVRInput.GetDown(OVRInput.RawButton.LIndexTrigger))
+        if (!left.IsHeld(TouchButton.Index)) draggingLeft = false;
+        if (left.IsPressed(TouchButton.Index))
         {
             startPositionTransform = transform.position;
             startPositionLeft = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch);
+            draggingLeft = true;
         }
-        if (OVRInput.Get(OVRInput.RawButton.LIndexTrigger))
+        if (draggingLeft)
         {
             Vector3 offset = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch) - startPositionLeft;
             transform.position = startPositionTransform + offset;
         }
 
-        if (OVRInput.GetDown(OVRInput.RawButton.A) || OVRInput.GetDown(OVRInput.RawButton.X))
+        var axes = transform.GetChild(0);
+        if (!calibrationChord && (right.IsPressed(TouchButton.Primary) || left.IsPressed(TouchButton.Primary)))
         {
-            if (transform.GetChild(0).localScale.magnitude > 0.2f)
-                transform.GetChild(0).localScale -= Vector3.one * 0.1F;
+            if (axes.localScale.magnitude > 0.2f) axes.localScale -= Vector3.one * 0.1f;
         }
-        if (OVRInput.GetDown(OVRInput.RawButton.B) || OVRInput.GetDown(OVRInput.RawButton.Y))
-        {
-            transform.GetChild(0).localScale += Vector3.one * 0.1F;
-        }
-        if (OVRInput.GetDown(OVRInput.RawButton.LThumbstick) || OVRInput.GetDown(OVRInput.RawButton.RThumbstick))
+        if (right.IsPressed(TouchButton.Secondary) || left.IsPressed(TouchButton.Secondary))
+            axes.localScale += Vector3.one * 0.1f;
+
+        // Left stick click is reserved for the keyboard, including during calibration.
+        if (right.IsPressed(TouchButton.Stick))
         {
             transform.position = Vector3.zero;
-            transform.GetChild(0).localScale = Vector3.one;
+            axes.localScale = Vector3.one;
         }
     }
-
-
-
-    // public Vector3 GetPosition(Vector3 worldPosition)
-    // {
-    //     return transform.TransformPoint(worldPosition);
-    // }
 
     public Vector3 GetEuler(Vector3 worldEuler)
     {

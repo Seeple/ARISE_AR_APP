@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 using System.Text;
 using System.Net.Http;
 using System.Collections;
+using TouchButton = PhysicalTouchInput.Button;
+using TouchSource = PhysicalTouchInput.Source;
+using TouchState = PhysicalTouchInput.State;
 
 // Matches HandMes on the workstation side
 [Serializable]
@@ -214,9 +217,19 @@ public class VRController : MonoBehaviour
     private bool wasPinching = false;  // 上一帧是否在捏合
 
     private bool useMagnifiedMapSelection = false;
+    private readonly TrajectoryMapHandPose mapHandPose = new TrajectoryMapHandPose();
     private bool useLastPointSelection = false;
-    private bool actionChunkVisible = true;
-    private bool ghostGrippersVisible = true;
+    [Flags] enum DisplayInput { None = 0, Chunk = 1, Ghosts = 2, Calibration = 4 }
+    private DisplayInput pendingDisplayInput;
+    private readonly PhysicalTouchInput leftTouch = new PhysicalTouchInput();
+    private readonly PhysicalTouchInput rightTouch = new PhysicalTouchInput();
+    private TouchSource rightInputSource;
+    private bool appFocused = true;
+    private bool appPaused;
+    private bool rightPinchArmed;
+    private int lastInputLogSignature = -1;
+    private int lastInputLogPoints = -1;
+    private float nextPointLog;
     private bool hasLastValidEditPose = false;
     private Vector3 lastValidEditPosePosition = Vector3.zero;
     private Quaternion lastValidEditPoseRotation = Quaternion.identity;
@@ -229,10 +242,35 @@ public class VRController : MonoBehaviour
     bool calibrationMode = false;
     bool cold = false;
 
+    public int KeyboardSelectedPoint => selectedPointIndex;
+    public int KeyboardHoveredPoint => hoveredPointIndex;
+    public bool KeyboardIsEditing => isEditingTrajectory;
+    public string KeyboardSelectionMode => useLastPointSelection ? "Last point" :
+        (useMagnifiedMapSelection ? "Magnified" : "Direct");
+
+    public void ToggleKeyboard()
+    {
+        if (keyboard == null) return;
+        if (keyboard.gameObject.activeSelf) { keyboard.gameObject.SetActive(false); return; }
+        Transform head = ovrhead != null ? ovrhead : (Camera.main != null ? Camera.main.transform : null);
+        keyboard.ShowAtHead(head);
+    }
+
+    public void MoveKeyboardWithStick(Vector2 stick,float deltaTime)
+    {
+        if(keyboard==null || !keyboard.gameObject.activeInHierarchy) return;
+        Transform head=ovrhead!=null?ovrhead:(Camera.main!=null?Camera.main.transform:null);
+        keyboard.MoveWithStick(stick,head,deltaTime);
+    }
+
     protected void Start()
     {
         instance = this;
-        showText.transform.parent.GetChild(1).GetComponent<TMPro.TextMeshProUGUI>().text = ip;
+        if (keyboard != null)
+        {
+            keyboard.InitializeHostIP(ip);
+            keyboard.gameObject.SetActive(false);
+        }
         message = new HandEditMessage();
         Time.fixedDeltaTime = 1f / Hz;
         
@@ -346,57 +384,121 @@ public class VRController : MonoBehaviour
     // Toggle calibration mode safely with a cooldown
     async void SwitchMode()
     {
-        if (cold) return;
+        if (cold || Calibration.instance == null) return;
         cold = true;
         calibrationMode = !calibrationMode;
         Calibration.instance.SwitchAlign(calibrationMode);
+        if (calibrationMode) CancelRightHandEdit();
         await Task.Delay(500);
         cold = false;
     }
 
+    DisplayInput ResolveDisplayInput(DisplayInput held, DisplayInput pressed, DisplayInput released, bool calibrating)
+    {
+        const DisplayInput chord = DisplayInput.Chunk | DisplayInput.Ghosts;
+        if ((held & chord) == chord)
+        {
+            pendingDisplayInput = DisplayInput.None;
+            return (pressed & chord) != 0 ? DisplayInput.Calibration : DisplayInput.None;
+        }
+
+        if (calibrating)
+        {
+            pendingDisplayInput = DisplayInput.None;
+            return DisplayInput.None;
+        }
+
+        pendingDisplayInput |= pressed;
+        var commands = pendingDisplayInput & released;
+        pendingDisplayInput &= held;
+        return commands;
+    }
+
+    bool HasInputFocus() => appFocused && !appPaused && OVRManager.hasInputFocus;
+
+    void OnApplicationFocus(bool focused)
+    {
+        appFocused = focused;
+        if (!focused) InvalidateInputs();
+    }
+
+    void OnApplicationPause(bool paused)
+    {
+        appPaused = paused;
+        if (paused) InvalidateInputs();
+    }
+
+    void OnDisable() => InvalidateInputs();
+
+    void InvalidateInputs()
+    {
+        leftTouch.Reset();
+        rightTouch.Reset();
+        pendingDisplayInput = DisplayInput.None;
+        rightInputSource = TouchSource.Unavailable;
+        if (magnifiedTrajectoryMap != null)
+        {
+            magnifiedTrajectoryMap.CancelPlacementGesture();
+            magnifiedTrajectoryMap.ResetStickZoom();
+        }
+        CancelRightHandEdit();
+    }
+
+    void CancelRightHandEdit()
+    {
+        wasPinching = rightPinchArmed = false;
+        if (isEditingTrajectory || pendingTrajectoryEditStop || selectedPointIndex >= 0)
+            ClearSelectedState();
+        if (hoveredPointIndex >= 0) ClearHoverState();
+    }
+
+    bool UpdateDisplayAndCalibrationButtons(TouchState left, TouchState right)
+    {
+        // Prevent ownership loss from committing a previously queued single-button action.
+        if (!left.Ready) pendingDisplayInput &= ~DisplayInput.Chunk;
+        if (!right.Ready) pendingDisplayInput &= ~DisplayInput.Ghosts;
+        var held = DisplayMask(left.Held, right.Held);
+        var command = ResolveDisplayInput(held, DisplayMask(left.Pressed, right.Pressed),
+            DisplayMask(left.Released, right.Released), calibrationMode);
+        if (command == DisplayInput.Calibration) SwitchMode();
+        else if (chunkVisualizer != null)
+        {
+            if ((command & DisplayInput.Chunk) != 0) chunkVisualizer.SetActionChunkVisible(!chunkVisualizer.showActionChunk);
+            if ((command & DisplayInput.Ghosts) != 0) chunkVisualizer.SetGhostGrippersVisible(!chunkVisualizer.showGhostGrippers);
+        }
+        return held == (DisplayInput.Chunk | DisplayInput.Ghosts);
+    }
+
+    static DisplayInput DisplayMask(TouchButton left, TouchButton right) =>
+        ((left & TouchButton.Primary) != 0 ? DisplayInput.Chunk : DisplayInput.None) |
+        ((right & TouchButton.Primary) != 0 ? DisplayInput.Ghosts : DisplayInput.None);
+
     public void Update()
     {
-        bool allowControllerButtons = (OVRInput.GetActiveController() & (OVRInput.Controller.LTouch | OVRInput.Controller.RTouch)) != 0;
+        bool focused = HasInputFocus();
+        var leftInputSource = PhysicalTouchInput.GetSource(true, focused);
+        rightInputSource = PhysicalTouchInput.GetSource(false, focused);
+        var left = leftTouch.Poll(true, leftInputSource);
+        var right = rightTouch.Poll(false, rightInputSource);
+        if (rightInputSource != TouchSource.BareHand) CancelRightHandEdit();
 
-        // 键盘位置更新（使用控制器位置）
-        if (keyboard != null && controller_right != null)
-        {
-            keyboard.transform.position = controller_right.position - new Vector3(0, 0.2f, 0);
-            keyboard.transform.LookAt(Camera.main.transform);
-        }
+        bool calibrationChord = UpdateDisplayAndCalibrationButtons(left, right);
+        if (left.IsPressed(TouchButton.Stick)) ToggleKeyboard();
+        if (left.Ready) MoveKeyboardWithStick(left.Stick, Time.unscaledDeltaTime);
 
-        // === 保留的控制器按键操作 ===
-        
-        // X + A: 切换校准模式
-        if (OVRInput.Get(OVRInput.RawButton.X) && OVRInput.Get(OVRInput.RawButton.A))
+        if (calibrationMode)
         {
-            SwitchMode();
-        }
-        
-        if (calibrationMode) return;
-
-        // Toggle action chunk visibility with X (no combo)
-        if (allowControllerButtons && OVRInput.GetDown(OVRInput.RawButton.X) && !OVRInput.Get(OVRInput.RawButton.A))
-        {
-            actionChunkVisible = !actionChunkVisible;
-            if (chunkVisualizer != null)
+            if (magnifiedTrajectoryMap != null)
             {
-                chunkVisualizer.SetActionChunkVisible(actionChunkVisible);
+                magnifiedTrajectoryMap.CancelPlacementGesture();
+                magnifiedTrajectoryMap.ResetStickZoom();
             }
-        }
-
-        // Toggle ghost gripper visibility with A (no combo)
-        if (allowControllerButtons && OVRInput.GetDown(OVRInput.RawButton.A) && !OVRInput.Get(OVRInput.RawButton.X))
-        {
-            ghostGrippersVisible = !ghostGrippersVisible;
-            if (chunkVisualizer != null)
-            {
-                chunkVisualizer.SetGhostGrippersVisible(ghostGrippersVisible);
-            }
+            if (Calibration.instance != null) Calibration.instance.ApplyTouchInput(left, right, calibrationChord);
+            return;
         }
 
         // Toggle last-point selection mode with Y button
-        if (allowControllerButtons && OVRInput.GetDown(OVRInput.RawButton.Y))
+        if (left.IsPressed(TouchButton.Secondary))
         {
             useLastPointSelection = !useLastPointSelection;
             ClearHoverState();
@@ -406,7 +508,7 @@ public class VRController : MonoBehaviour
         }
 
         // Toggle selection mode with B button
-        if (allowControllerButtons && OVRInput.GetDown(OVRInput.RawButton.B))
+        if (right.IsPressed(TouchButton.Secondary))
         {
             useMagnifiedMapSelection = !useMagnifiedMapSelection;
             ClearHoverState();
@@ -414,19 +516,10 @@ public class VRController : MonoBehaviour
             UpdateDebugVisibility();
             Debug.Log($"VRController: Selection mode = {(useMagnifiedMapSelection ? "MagnifiedMap" : "Collision")}");
         }
-
-        // 左手摇杆: 切换键盘
-        if (OVRInput.GetDown(OVRInput.RawButton.LThumbstick))
-        {
-            if (keyboard != null)
-            {
-                keyboard.gameObject.SetActive(!keyboard.gameObject.activeSelf);
-            }
-        }
-        
+        UpdateMagnifiedMapPlacement(leftInputSource == TouchSource.BareHand, right);
         // === Trajectory selection ===
 
-        if (rightHand != null && rightHand.IsDataValid)
+        if (rightInputSource == TouchSource.BareHand && rightHand != null && rightHand.IsDataValid && rightHand.IsTracked && !rightHand.IsSystemGestureInProgress)
         {
             if (useLastPointSelection)
             {
@@ -447,8 +540,9 @@ public class VRController : MonoBehaviour
         else
         {
             ExpireHoverStateIfNeeded();
+            if (isEditingTrajectory && !TryGetRecentEditPose(out _, out _)) CancelRightHandEdit();
         }
-        
+
         // 更新编辑数据
         if (isEditingTrajectory && rightHand != null)
         {
@@ -609,6 +703,24 @@ public class VRController : MonoBehaviour
         }
     }
 
+    void UpdateMagnifiedMapPlacement(bool leftBareHand, TouchState right)
+    {
+        if (magnifiedTrajectoryMap == null) return;
+        if (!ShouldUseMagnifiedPoseMapping() || isEditingTrajectory || !magnifiedTrajectoryMap.CanAdjustPlacement)
+        {
+            magnifiedTrajectoryMap.CancelPlacementGesture();
+            magnifiedTrajectoryMap.ResetStickZoom();
+            return;
+        }
+
+        Vector3 gesturePoint = Vector3.zero;
+        bool pinching = leftBareHand && mapHandPose.ReadPinch(leftHand, out gesturePoint);
+        bool moved = magnifiedTrajectoryMap.UpdatePlacementDrag(pinching, gesturePoint, Time.unscaledDeltaTime);
+        bool zoomed = magnifiedTrajectoryMap.UpdateStickZoom(right.Stick.y, right.Ready,
+            right.IsHeld(TouchButton.Stick) || right.IsReleased(TouchButton.Stick), Time.unscaledDeltaTime);
+        if (moved || zoomed) ClearHoverState();
+    }
+
     void UpdateMagnifiedMapSelection()
     {
         if (magnifiedTrajectoryMap == null)
@@ -732,6 +844,11 @@ public class VRController : MonoBehaviour
     void HandlePinchGesture()
     {
         float pinchStrength = rightHand.GetFingerPinchStrength(OVRHand.HandFinger.Index);
+        if (!rightPinchArmed)
+        {
+            rightPinchArmed = pinchStrength <= releaseThreshold;
+            return;
+        }
         
         bool isPinchingNow = wasPinching ? 
             (pinchStrength > releaseThreshold) :
@@ -899,7 +1016,8 @@ public class VRController : MonoBehaviour
         position = Vector3.zero;
         rotation = Quaternion.identity;
 
-        if (rightHand == null || !rightHand.IsDataValid || indexFingerTip == null)
+        if (rightInputSource != TouchSource.BareHand || rightHand == null || !rightHand.IsDataValid ||
+            !rightHand.IsTracked || rightHand.IsSystemGestureInProgress || indexFingerTip == null)
         {
             return false;
         }
@@ -967,6 +1085,7 @@ public class VRController : MonoBehaviour
 
     void ClearTrajectoryEditPayload()
     {
+        if (message == null) return;
         message.trajectoryEdit.isEditing = false;
         message.trajectoryEdit.selectedPointIndex = -1;
     }
@@ -1057,7 +1176,8 @@ public class VRController : MonoBehaviour
     {
         ClearHandPoseMessage(handMessage);
 
-        if (handMessage == null || sourceHand == null)
+        if (handMessage == null || sourceHand == null || !sourceHand.IsDataValid || !sourceHand.IsTracked ||
+            sourceHand.IsSystemGestureInProgress)
         {
             return;
         }
@@ -1094,6 +1214,7 @@ public class VRController : MonoBehaviour
     // Collect all pose/button data and send to workstation at fixed Hz
     public void CollectAndSend()
     {
+        if (message == null) return;
         message.timestamp = Time.time;
 
         // Head pose
@@ -1108,10 +1229,15 @@ public class VRController : MonoBehaviour
             message.headQuat[3] = ovrhead.rotation.z;
         }
 
-        // Right controller pose and buttons
-        OVRInput.Controller rightController = LRinverse ? OVRInput.Controller.LTouch : OVRInput.Controller.RTouch;
-        OVRInput.Controller leftController  = LRinverse ? OVRInput.Controller.RTouch : OVRInput.Controller.LTouch;
+        bool focused = HasInputFocus();
+        var leftSource = PhysicalTouchInput.GetSource(true, focused);
+        var rightSource = PhysicalTouchInput.GetSource(false, focused);
+        var left = leftTouch.ForSend(leftSource);
+        var right = rightTouch.ForSend(rightSource);
+        if (rightSource != TouchSource.BareHand) CancelRightHandEdit();
 
+        // Preserve the workstation's wrist anchors and raw button slots. LRinverse historically
+        // swaps the physical trigger axes, not the physical button slots.
         if (controller_right != null)
         {
             message.rightHand.wristPos[0] = controller_right.position.x;
@@ -1122,13 +1248,6 @@ public class VRController : MonoBehaviour
             message.rightHand.wristQuat[2] = controller_right.rotation.y;
             message.rightHand.wristQuat[3] = controller_right.rotation.z;
         }
-        message.rightHand.triggerState = OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger, rightController);
-        message.rightHand.buttonState[0] = OVRInput.Get(OVRInput.RawButton.B);
-        message.rightHand.buttonState[1] = OVRInput.Get(OVRInput.RawButton.A);
-        message.rightHand.buttonState[2] = OVRInput.Get(OVRInput.RawButton.RThumbstick);
-        message.rightHand.buttonState[3] = OVRInput.Get(OVRInput.RawButton.RIndexTrigger);
-        message.rightHand.buttonState[4] = OVRInput.Get(OVRInput.RawButton.RHandTrigger);
-
         // Left controller pose and buttons
         if (controller_left != null)
         {
@@ -1140,15 +1259,10 @@ public class VRController : MonoBehaviour
             message.leftHand.wristQuat[2] = controller_left.rotation.y;
             message.leftHand.wristQuat[3] = controller_left.rotation.z;
         }
-        message.leftHand.triggerState = OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger, leftController);
-        message.leftHand.buttonState[0] = OVRInput.Get(OVRInput.RawButton.Y);
-        message.leftHand.buttonState[1] = OVRInput.Get(OVRInput.RawButton.X);
-        message.leftHand.buttonState[2] = OVRInput.Get(OVRInput.RawButton.LThumbstick);
-        message.leftHand.buttonState[3] = OVRInput.Get(OVRInput.RawButton.LIndexTrigger);
-        message.leftHand.buttonState[4] = OVRInput.Get(OVRInput.RawButton.LHandTrigger);
-
-        UpdateHandPoseMessage(message.rightHand, rightHand, indexFingerTip, true);
-        UpdateHandPoseMessage(message.leftHand, leftHand, null);
+        FillControllerChannels(message, left, right, LRinverse);
+        UpdateHandPoseMessage(message.rightHand, rightSource == TouchSource.BareHand ? rightHand : null, indexFingerTip, true);
+        UpdateHandPoseMessage(message.leftHand, leftSource == TouchSource.BareHand ? leftHand : null, null);
+        LogInputRouting(leftSource, rightSource, left, right);
 
         HandEditMessage outboundMessage = message.Clone();
         outboundMessage.TransformToAlignSpace();
@@ -1160,6 +1274,37 @@ public class VRController : MonoBehaviour
         client.PostAsync(url, content);
 
         CompletePendingTrajectoryEditStop();
+    }
+
+    static void FillControllerChannels(HandEditMessage packet, TouchState left, TouchState right, bool inverse)
+    {
+        left.WriteButtons(packet.leftHand.buttonState);
+        right.WriteButtons(packet.rightHand.buttonState);
+        packet.leftHand.triggerState = inverse ? right.Trigger : left.Trigger;
+        packet.rightHand.triggerState = inverse ? left.Trigger : right.Trigger;
+    }
+
+    void LogInputRouting(TouchSource leftSource, TouchSource rightSource, TouchState left, TouchState right)
+    {
+        int points = chunkVisualizer == null ? 0 : chunkVisualizer.GetLastPointIndex() + 1;
+        bool chunkVisible = chunkVisualizer != null && chunkVisualizer.showActionChunk;
+        bool ghostsVisible = chunkVisualizer != null && chunkVisualizer.showGhostGrippers;
+        bool handPinch = message.rightHand.handPinchState > releaseThreshold;
+        int signature = (int)leftSource | ((int)rightSource << 2) | (left.WireMask << 4) | (right.WireMask << 9);
+        if (chunkVisible) signature |= 1 << 14;
+        if (ghostsVisible) signature |= 1 << 15;
+        if (handPinch) signature |= 1 << 16;
+        if (message.leftHand.triggerState > .05f) signature |= 1 << 17;
+        if (message.rightHand.triggerState > .05f) signature |= 1 << 18;
+        if (message.trajectoryEdit.isEditing) signature |= 1 << 19;
+        if (signature == lastInputLogSignature && (points == lastInputLogPoints || Time.unscaledTime < nextPointLog)) return;
+
+        lastInputLogSignature = signature;
+        lastInputLogPoints = points;
+        nextPointLog = Time.unscaledTime + 1f;
+        Debug.Log($"[ARISE Input] source L={leftSource} R={rightSource} buttons L={left.WireMask} R={right.WireMask} " +
+            $"trigger L={message.leftHand.triggerState:F2} R={message.rightHand.triggerState:F2} " +
+            $"rightPinch={handPinch} editing={message.trajectoryEdit.isEditing} visible={chunkVisible} ghosts={ghostsVisible} points={points}");
     }
 
     public void RefreshIP(string ip)
