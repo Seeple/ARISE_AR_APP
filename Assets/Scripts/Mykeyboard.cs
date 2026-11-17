@@ -33,8 +33,47 @@ public class MyKeyboard : MonoBehaviour
     public TextMeshProUGUI calibrationTitle;
     public GameObject yawIncreaseButton;
     public GameObject yawDecreaseButton;
+    public GameObject defaultTaskButton;
+    public GameObject knotTaskButton;
+    public TextMeshProUGUI toolStatusText;
     [Min(.01f)] public float yawStepDegrees = 1f;
     bool? yawControlsActive;
+    HeldToolVisualization heldTool;
+    HeldToolVisualization.TaskMode? displayedTask;
+
+    public void SelectDefaultTask() => SelectToolTask(HeldToolVisualization.TaskMode.Default);
+    public void SelectKnotTask() => SelectToolTask(HeldToolVisualization.TaskMode.Knot);
+
+    void SelectToolTask(HeldToolVisualization.TaskMode task)
+    {
+        if (heldTool != null) heldTool.SelectTask(task);
+        RefreshToolControls();
+    }
+
+    public void RefreshToolControls()
+    {
+        var task = heldTool == null ? HeldToolVisualization.TaskMode.Default : heldTool.Mode;
+        if (toolStatusText != null)
+        {
+            string status = heldTool == null ? "Off" : heldTool.Status;
+            if (toolStatusText.text != status) toolStatusText.text = status;
+        }
+        if (displayedTask == task) return;
+        displayedTask = task;
+        SetTaskButtonLight(defaultTaskButton, task == HeldToolVisualization.TaskMode.Default);
+        SetTaskButtonLight(knotTaskButton, task == HeldToolVisualization.TaskMode.Knot);
+    }
+
+    static void SetTaskButtonLight(GameObject button, bool selected)
+    {
+        if (button == null) return;
+        var label = button.GetComponentInChildren<TMP_Text>(true);
+        label.color = selected ? new Color(.32f, .91f, 1f) : new Color(.72f, .79f, .84f);
+        label.fontStyle = selected ? FontStyles.Bold : FontStyles.Normal;
+        var face = button.GetComponentInChildren<Oculus.Interaction.RoundedBoxProperties>(true);
+        face.BorderColor = selected ? new Color(.32f, .91f, 1f) : new Color(.15f, .40f, .52f);
+        face.Width = face.Width; // Apply the border without changing the poke hover and press colors.
+    }
 
     public void IncreaseCalibrationYaw() { AdjustCalibrationYaw(yawStepDegrees); }
     public void DecreaseCalibrationYaw() { AdjustCalibrationYaw(-yawStepDegrees); }
@@ -97,6 +136,9 @@ public class MyKeyboard : MonoBehaviour
         hasLastSample = false;
         yawControlsActive = null;
         RefreshCalibrationControls();
+        heldTool = Client == null ? null : Client.GetComponent<HeldToolVisualization>();
+        displayedTask = null;
+        RefreshToolControls();
         if (instructionText != null) instructionText.text = ControlHelp;
         UpdateMonitor(false, Vector3.zero, false, Vector3.zero, false, -1, false);
     }
@@ -148,6 +190,7 @@ public class MyKeyboard : MonoBehaviour
     void Update()
     {
         RefreshCalibrationControls();
+        RefreshToolControls();
         if (Client == null || showText == null) return;
         Vector3 indexPos, editPos; Quaternion indexRot, editRot; bool editing; int selected;
         bool hasIndex = Client.TryGetIndexTipPose(out indexPos, out indexRot);

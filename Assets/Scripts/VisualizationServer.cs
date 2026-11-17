@@ -56,6 +56,7 @@ public class VisualizationServer : MonoBehaviour
 
     GameObject robotGhostPrefab;
     GameObject robotGhostInstance;
+    HeldToolVisualization heldTool;
 
     /*
     Initialization of the UDP servers and threads.
@@ -63,6 +64,7 @@ public class VisualizationServer : MonoBehaviour
     private void Awake()
     {
         instance = this;
+        heldTool = GetComponent<HeldToolVisualization>();
     }
 
     /*
@@ -103,7 +105,8 @@ public class VisualizationServer : MonoBehaviour
                     {
                         BimanualRobotStates pose = serializer.Deserialize<BimanualRobotStates>(reader);
                         // update the robot's position and rotation in the AR scene on the main thread.
-                        UnityMainThreadDispatcher.Instance().Enqueue(() => UpdateRobot(pose));
+                        IPAddress sender = remoteEndPoint.Address;
+                        UnityMainThreadDispatcher.Instance().Enqueue(() => UpdateRobot(pose, sender));
                     }
                 }
                 //BimanualRobotStates pose = MessagePackSerializer.Deserialize<BimanualRobotStates>(receiveBytes);
@@ -353,21 +356,25 @@ public class VisualizationServer : MonoBehaviour
         public List<float> leftGripperState { get; set; }
         [DataMember]
         public List<float> rightGripperState { get; set; }
+        [DataMember]
+        public string leftGraspId { get; set; }
     }
 
-    void UpdateRobot(BimanualRobotStates pose)
+    void UpdateRobot(BimanualRobotStates pose, IPAddress sender)
     {
         leftTCP.localPosition = new Vector3(pose.leftRobotTCP[0], pose.leftRobotTCP[1], pose.leftRobotTCP[2]);
         rightTCP.localPosition = new Vector3(pose.rightRobotTCP[0], pose.rightRobotTCP[1], pose.rightRobotTCP[2]);
         leftTCP.localRotation = new Quaternion(pose.leftRobotTCP[4], pose.leftRobotTCP[5], pose.leftRobotTCP[6], pose.leftRobotTCP[3]);
         rightTCP.localRotation = new Quaternion(pose.rightRobotTCP[4], pose.rightRobotTCP[5], pose.rightRobotTCP[6], pose.rightRobotTCP[3]);
 
-        if (pose.leftGripperState != null && pose.leftGripperState.Count > 0)
+        bool hasWidth = pose.leftGripperState != null && pose.leftGripperState.Count > 0;
+        if (hasWidth)
         {
             leftGripperWidth = pose.leftGripperState[0];
             hasLeftGripperWidth = true;
         }
 
+        heldTool?.ObserveLiveJaw(sender, hasWidth ? pose.leftGripperState[0] : -1f, pose.leftGraspId);
         UpdateRobotGhost();
     }
 

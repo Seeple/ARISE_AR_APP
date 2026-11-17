@@ -68,6 +68,7 @@ public static class KeyboardPrefabBuilder
             keyboard.yawIncreaseButton=YawButton(source,surface,keyboard,true,.09f,-.265f);
             keyboard.yawDecreaseButton=YawButton(source,surface,keyboard,false,.31f,-.265f);
             Text(ct,"Instruction Footer","LEFT STICK CLICK / SHOW · HIDE",35,-307,330,14,9,Muted);
+            BuildToolTaskControls(source, surface, keyboard);
             // Populate a useful edit-time placeholder without simulating any tracking data.
             keyboard.showText.text="<color=#52D9EF>FINGERTIP / WORLD [m]</color>\nX --         Y --         Z --\nPoint  None     Hover  None\nMode  Direct     Editing  Idle\nEdit XYZ  --\nHost  Ready";
             keyboard.Client=null;keyboard.summonDistance=.45f;keyboard.summonDrop=.22f;
@@ -152,7 +153,7 @@ public static class KeyboardPrefabBuilder
         go.GetComponent<Image>().color=color;go.GetComponent<Image>().raycastTarget=false;
     }
 
-    static void Button(Transform original,Transform parent,MyKeyboard keyboard,string name,float x,float y,bool utility)
+    static GameObject Button(Transform original,Transform parent,MyKeyboard keyboard,string name,float x,float y,bool utility)
     {
         var go=UnityEngine.Object.Instantiate(original.Find(name).gameObject,parent,false);go.name=name;go.SetActive(true);
         go.transform.localPosition=new Vector3(x,y,0);go.transform.localRotation=Quaternion.identity;go.transform.localScale=Vector3.one*.05f;
@@ -188,14 +189,14 @@ public static class KeyboardPrefabBuilder
         entry.FindPropertyRelative("m_CallState").enumValueIndex=2;
         entry.FindPropertyRelative("m_Arguments.m_StringArgument").stringValue=name;
         calls.ApplyModifiedPropertiesWithoutUndo();
+        return go;
     }
 
     static GameObject YawButton(Transform source,Transform parent,MyKeyboard keyboard,bool increase,float x,float y)
     {
         string name=increase?"Yaw Increase":"Yaw Decrease";
         // Reuse the proven numeric-key poke geometry and bind release to the keyboard root.
-        Button(source,parent,keyboard,"1",x,y,false);
-        var go=parent.GetChild(parent.childCount-1).gameObject;
+        var go=Button(source,parent,keyboard,"1",x,y,false);
         go.name=name;
         var label=go.GetComponentInChildren<TMP_Text>(true);
         label.text=increase?"+":"-";
@@ -206,6 +207,57 @@ public static class KeyboardPrefabBuilder
         call.FindPropertyRelative("m_Mode").enumValueIndex=1;
         so.ApplyModifiedPropertiesWithoutUndo();
         return go;
+    }
+
+    // Install the task selector in an existing prefab without regenerating its other keys.
+    public static void UpdateToolTaskControls()
+    {
+        font = ConsoleFont();
+        var root = PrefabUtility.LoadPrefabContents(PrefabPath);
+        var original = PrefabUtility.LoadPrefabContents(BackupPath);
+        try
+        {
+            BuildToolTaskControls(original.transform.Find("r"), root.transform.Find("Console Surface"),
+                root.GetComponent<MyKeyboard>());
+            ConfigureStableRendering(root);
+            PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
+        }
+        finally
+        {
+            PrefabUtility.UnloadPrefabContents(original);
+            PrefabUtility.UnloadPrefabContents(root);
+        }
+    }
+
+    static void BuildToolTaskControls(Transform source, Transform surface, MyKeyboard keyboard)
+    {
+        if (keyboard.defaultTaskButton != null) return;
+        var canvas = surface.Find("Console Text");
+        var statusRect = keyboard.showText.rectTransform;
+        statusRect.sizeDelta = new Vector2(214f, statusRect.sizeDelta.y);
+        Text(canvas, "Tool Task Title", "TOOL TASK", -145, -193, 111, 18, 12, Cyan, FontStyles.Bold);
+        keyboard.defaultTaskButton = TaskButton(source, surface, keyboard, "Default", -.119f,
+            nameof(MyKeyboard.SelectDefaultTask));
+        keyboard.knotTaskButton = TaskButton(source, surface, keyboard, "Knot", -.064f,
+            nameof(MyKeyboard.SelectKnotTask));
+        keyboard.toolStatusText = Text(canvas, "Tool Status", "Off", -145, -279, 115, 32, 11, Ink);
+        keyboard.RefreshToolControls();
+    }
+
+    static GameObject TaskButton(Transform source, Transform parent, MyKeyboard keyboard,
+        string label, float x, string method)
+    {
+        var button = Button(source, parent, keyboard, "1", x, -.239f, false);
+        button.name = label + " Task";
+        var text = button.GetComponentInChildren<TMP_Text>(true);
+        text.text = label;
+        text.fontSize = 23f;
+        var wrapper = new SerializedObject(button.GetComponent<PointableUnityEventWrapper>());
+        var call = wrapper.FindProperty("_whenRelease.m_PersistentCalls.m_Calls").GetArrayElementAtIndex(0);
+        call.FindPropertyRelative("m_MethodName").stringValue = method;
+        call.FindPropertyRelative("m_Mode").enumValueIndex = 1;
+        wrapper.ApplyModifiedPropertiesWithoutUndo();
+        return button;
     }
 
     public static void ApplyToCurrentScene()

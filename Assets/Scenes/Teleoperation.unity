@@ -1079,6 +1079,7 @@ GameObject:
   - component: {fileID: 745937857}
   - component: {fileID: 745937856}
   - component: {fileID: 745937859}
+  - component: {fileID: 745937860}
   m_Layer: 0
   m_Name: Main
   m_TagString: Untagged
@@ -1208,6 +1209,23 @@ MonoBehaviour:
   ghostSampleStride: 4
   showActionChunk: 1
   showGhostGrippers: 1
+--- !u!114 &745937860
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 745937853}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9add075599bd147d18c5843787cd5b58, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  knotRingPrefab: {fileID: 3328052449645730225, guid: be870d2eec71e4c1e8f27e0ee3cfe19d,
+    type: 3}
+  graspImagePort: 10008
+  projectedTcp: {x: 0.5, y: 0.5}
+  imageToTcpEuler: {x: 0, y: 0, z: 0}
 --- !u!1 &751219473 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8995142676830460177, guid: ea16c3c8c1688234fa81a4f39339bf1b,

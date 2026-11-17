@@ -67,6 +67,7 @@ public class ChunkVisualizer : MonoBehaviour
     private List<Vector3> cachedPositions = new List<Vector3>();
     private List<Quaternion> cachedRotations = new List<Quaternion>();
     private List<float> cachedGripperWidths = new List<float>();
+    internal int TrajectoryRevision { get; private set; }
     
     // Action chunk data: 6D pose (x,y,z,r,p,y)
     [DataContract]
@@ -401,6 +402,7 @@ public class ChunkVisualizer : MonoBehaviour
         cachedPositions = new List<Vector3>(positions);
         cachedRotations = new List<Quaternion>(rotations);
         cachedGripperWidths = new List<float>(gripperWidths);
+        TrajectoryRevision++;
     }
 
     void NotifyTrajectoryUpdated()
@@ -775,6 +777,16 @@ public class ChunkVisualizer : MonoBehaviour
     public Transform GetTrajectoryRootTransform()
     {
         return trajectoryContainer != null ? trajectoryContainer.transform : null;
+    }
+
+    internal bool TryGetTrajectoryPoint(int index, out Pose tcp, out float gripperWidth)
+    {
+        tcp = default;
+        gripperWidth = -1f;
+        if (!HasCachedIndex(index) || index >= cachedGripperWidths.Count) return false;
+        tcp = new Pose(cachedPositions[index], cachedRotations[index]);
+        gripperWidth = cachedGripperWidths[index];
+        return true;
     }
 
     public bool TryGetTrajectorySnapshot(out List<Vector3> positions, out List<Quaternion> rotations, out List<float> gripperWidths)

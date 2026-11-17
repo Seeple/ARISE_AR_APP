@@ -41,6 +41,9 @@ Samples/
 !Assets/Resources/Prefab/GhostGripper.prefab.meta
 !Assets/Resources/Prefab/AG16095SoftGripper.prefab
 !Assets/Resources/Prefab/AG16095SoftGripper.prefab.meta
+!Assets/Resources/Prefab/KnotRing.prefab
+!Assets/Resources/Prefab/KnotRing.prefab.meta
+!Assets/Resources/Material/KnotRing.mat.meta
 !Assets/Resources/GripperModels.meta
 !Assets/Resources/GripperModels/
 !Assets/Resources/GripperModels/**
@@ -52,6 +55,9 @@ Samples/
 !Assets/Scripts/TrajectoryMapHandPose.cs.meta
 !Assets/Scripts/PhysicalTouchInput.cs.meta
 !Assets/Scripts/CubeVisualizer.cs.meta
+!Assets/Scripts/GraspImageReceiver.cs.meta
+!Assets/Scripts/HeldToolVisualization.cs.meta
+!Assets/Scripts/KnotGraspPose.cs.meta
 !Assets/Scripts/MagnifiedTrajectoryMap.cs.meta
 !Assets/Scripts/TrajectoryPointData.cs.meta
 !Assets/Scripts/TrajectoryVisualizer.cs.meta
